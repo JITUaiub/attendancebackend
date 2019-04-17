@@ -8,8 +8,9 @@ import org.springframework.stereotype.Component;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 
 @Component
 public class MQTTProductionCounter implements MqttCallback {
@@ -24,18 +25,29 @@ public class MQTTProductionCounter implements MqttCallback {
     //private CountDownLatch processingFinishedLatch;
 
     private MqttClient client;
-
+    private MqttConnectOptions connectOptions;
     private String matchineNo;
     private String cardNo;
-    public MQTTProductionCounter(){mqttSubscriberFetch();}
+    public MQTTProductionCounter(){}
 
     public void mqttSubscriberFetch(){
         try{
             client = new MqttClient(mqttBroker, clientId);
-            client.connect();
+            connectOptions = new MqttConnectOptions();
+            connectOptions.setAutomaticReconnect(true);
+            connectOptions.setCleanSession(true);
+            connectOptions.setKeepAliveInterval(10);
+            //connectOptions.setConnectionTimeout(999999);
+            connectOptions.setCleanSession(false);
             client.setCallback(this);
-            client.subscribe(topic);
-            //processingFinishedLatch = new CountDownLatch(1);
+            try{
+                client.connect(connectOptions);
+                client.subscribe(topic);
+            } catch (Exception e){
+                //AttendancebackendApplication.restart();
+                e.printStackTrace();
+            }
+            //client.connect();
         }catch (MqttException e){
             e.printStackTrace();
         }
@@ -47,10 +59,9 @@ public class MQTTProductionCounter implements MqttCallback {
         try{
             validateCard.getAuthValue();
         } catch (Exception e){
-            System.out.println("Ofbiz Server Might be down.");
+            Logger.getLogger(MQTTProductionCounter.class.getName()).log(Level.WARNING, "Ofbiz server might be down");
         }
         List<String> result = validateCard.getDataList();
-        System.out.println("Message Arrived " + message);
         boolean loginFlag = false;
 
         if(new String(message.getPayload()).contains("-")){
@@ -63,36 +74,44 @@ public class MQTTProductionCounter implements MqttCallback {
                     loginFlag = false;
                 }
             }
+
             if (loginFlag){
                 try{
                     axisClient.sendForInsert(parts[1], parts[0], new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date()));
                 } catch (Exception e){
-                    System.out.println("Ofbiz Server Might be down.");
+                    Logger.getLogger(MQTTProductionCounter.class.getName()).log(Level.WARNING, "Ofbiz server might be down");
                 }
-                client.publish("door1", new MqttMessage("3".getBytes()));
+                MqttMessage authMessage = new MqttMessage("3".getBytes());
+                authMessage.setQos(2);
+                client.publish("door1", authMessage);
+                Logger.getLogger(MQTTProductionCounter.class.getName()).log(Level.INFO, "Requested Card No: " + parts[1] + " \tStatus: Authorized");
 
             }else {
-                client.publish("door1", new MqttMessage("9".getBytes()));
+                MqttMessage authMessage = new MqttMessage("9".getBytes());
+                authMessage.setQos(2);
+                client.publish("door1", authMessage);
+                Logger.getLogger(MQTTProductionCounter.class.getName()).log(Level.INFO, "Requested Card No: " + parts[1] + " \tStatus: Unauthorized");
             }
         }
     }
 
     @Override
     public void deliveryComplete(IMqttDeliveryToken token) {
-       System.out.println("Message Successfully delivered.");
+
     }
 
     @Override
     public void connectionLost(Throwable cause) {
-        System.out.println("Connection Lost");
-        try {
-            if (!client.isConnected()){
-                System.out.println("Reconnecting ...");
-                client.reconnect();
-                System.out.println("Connected");
+        Logger.getLogger(MQTTProductionCounter.class.getName()).log(Level.WARNING, "Connection Lost. Will be reconnected soon.");
+        /*if (!client.isConnected()){
+            try{
+                connectOptions.setCleanSession(false);
+                client.connect(connectOptions);
+                client.subscribe(topic);
+            } catch (Exception e){
+                //AttendancebackendApplication.restart();
+                e.printStackTrace();
             }
-        } catch (MqttException e) {
-            e.printStackTrace();
-        }
+        }*/
     }
 }

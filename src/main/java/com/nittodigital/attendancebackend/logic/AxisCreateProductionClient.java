@@ -22,7 +22,7 @@ public class AxisCreateProductionClient {
         sc = new ServiceClient();
         Options opts = new Options();
         opts.setTo(new EndpointReference(
-                "https://202.4.114.226:4448/webtools/control/SOAPService"));
+                "https://202.4.114.226:8501/webtools/control/SOAPService"));
         opts.setAction("createAttendance");
         sc.setOptions(opts);
     }
