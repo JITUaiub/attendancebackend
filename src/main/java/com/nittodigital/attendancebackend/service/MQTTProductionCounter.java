@@ -20,7 +20,7 @@ public class MQTTProductionCounter implements MqttCallback {
     @Autowired
     private ValidateCard validateCard;
     //private String mqttBroker = "tcp://iot.eclipse.org:1883";
-    private String mqttBroker = "tcp://192.168.0.130";
+    private String mqttBroker = "tcp://192.168.0.135";
     private String clientId = "nitto-door";
     private String topic = "door";
     //private CountDownLatch processingFinishedLatch;
@@ -89,7 +89,7 @@ public class MQTTProductionCounter implements MqttCallback {
                 client.publish("door1", authMessage);
                 Logger.getLogger(MQTTProductionCounter.class.getName()).log(Level.INFO, "Requested Card No: " + parts[1] + " \tStatus: Authorized");
 
-            }else {
+            }else if(!loginFlag) {
                 MqttMessage authMessage = new MqttMessage("9".getBytes());
                 authMessage.setQos(2);
                 client.publish("door1", authMessage);

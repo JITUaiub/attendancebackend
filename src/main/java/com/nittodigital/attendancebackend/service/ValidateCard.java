@@ -49,7 +49,7 @@ public class ValidateCard {
             sc = new ServiceClient();
             Options opts = new Options();
             opts.setTo(new EndpointReference(
-                    "https://202.4.114.226:8501/webtools/control/SOAPService"));
+                    "https://localhost:8443/webtools/control/SOAPService"));
             opts.setAction("getPersonCardList");
             sc.setOptions(opts);
         }
