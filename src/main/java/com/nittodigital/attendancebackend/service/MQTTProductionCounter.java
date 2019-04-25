@@ -19,7 +19,8 @@ public class MQTTProductionCounter implements MqttCallback {
     private AxisCreateProductionClient axisClient;
     @Autowired
     private ValidateCard validateCard;
-    private String mqttBroker = "tcp://iot.eclipse.org:1883";
+    //private String mqttBroker = "tcp://iot.eclipse.org:1883";
+    private String mqttBroker = "tcp://192.168.0.130";
     private String clientId = "nitto-door";
     private String topic = "door";
     //private CountDownLatch processingFinishedLatch;
@@ -34,6 +35,8 @@ public class MQTTProductionCounter implements MqttCallback {
         try{
             client = new MqttClient(mqttBroker, clientId);
             connectOptions = new MqttConnectOptions();
+            connectOptions.setUserName("nitto");
+            connectOptions.setPassword("nitto".toCharArray());
             connectOptions.setAutomaticReconnect(true);
             connectOptions.setCleanSession(true);
             connectOptions.setKeepAliveInterval(10);
