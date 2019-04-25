@@ -20,7 +20,7 @@ public class MQTTProductionCounter implements MqttCallback {
     @Autowired
     private ValidateCard validateCard;
     //private String mqttBroker = "tcp://iot.eclipse.org:1883";
-    private String mqttBroker = "tcp://192.168.0.135";
+    private String mqttBroker = "tcp://192.168.0.130";
     private String clientId = "nitto-door";
     private String topic = "door";
     //private CountDownLatch processingFinishedLatch;
@@ -65,6 +65,9 @@ public class MQTTProductionCounter implements MqttCallback {
             Logger.getLogger(MQTTProductionCounter.class.getName()).log(Level.WARNING, "Ofbiz server might be down");
         }
         List<String> result = validateCard.getDataList();
+
+        //System.out.println("Card List: " + result);
+
         boolean loginFlag = false;
 
         if(new String(message.getPayload()).contains("-")){
