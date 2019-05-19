@@ -30,7 +30,6 @@ public class AxisCreateProductionClient {
     public void sendForInsert(String cardNo, String machineNo, String timestamp)throws AxisFault {
 
         OMElement res = sc.sendReceive(createPayLoad(cardNo, machineNo, timestamp));
-        //System.out.println(res);
         res.discard();
     }
 
